@@ -61,9 +61,11 @@ Indeed, we get the expected result for the 1st two Makefile targets:
   - default
   - isolated-nn
 
-Here's how success looks like:
+#### Here's how success looks like:
 
+Simple case, no `--nn` used:
 ```
+$ make default
 #
 # Verifying normal no --nn (thus no leak) operation
 #
@@ -72,6 +74,11 @@ vw --noconstant -k --learning_rate 2 --progress 1 -d leaktest.vw 2>&1 |
 All OK! (predicted values monotonically approaching label)
         P2: 0.0000 1.7293 1.9627 1.9949 1.9993 1.9999
         P5: 0.0000 2.7532 3.9168 4.4706 4.7404 4.8726
+```
+
+Isolated name-spaces (2 runs with `--nn`):
+```
+$ make isolated-nn
 #
 # Verifying isolated name-spaces with --nn
 #
@@ -107,6 +114,7 @@ the `always5` pushes the `always2` stream up.
 
 Here's the failure case in detail:
 ```
+$ make nn-leak
 #
 # Triggering bug (data leak between name-spaces with --nn)
 #
