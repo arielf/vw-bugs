@@ -1,0 +1,12 @@
+5.0 time0/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time0/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time1/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time1/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time2/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time2/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time3/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time3/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time4/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time4/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time5/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time5/always2|always2  f1:1 f2:-1 f3:1 f4:-1

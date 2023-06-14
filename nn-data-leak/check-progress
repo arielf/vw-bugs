@@ -1,0 +1,50 @@
+#!/usr/bin/perl -lanw
+
+# Only look at progress lines
+next unless (/^\d/);
+
+my $actual = $F[4];
+my $predicted = $F[5];
+
+if ($actual == 5.0) { push(@P5, $predicted); }
+if ($actual == 2.0) { push(@P2, $predicted); }
+
+END {
+    my $Errors = 0;
+
+    sub check_series($@) {
+        my ($label, @series) = @_;
+
+        my $prev_val = -1;
+        my $val;
+
+        for my $i (0 .. $#series) {
+            $val = $series[$i];
+            my $exno = $i + 1;
+
+            if ($val > $label) {
+                print "constant label=$label: example-no=$exno " .
+                      " predicted=$val exceeds max ($label):\n" .
+                      " @series";
+                $Errors++;
+            }
+
+            if ($prev_val > $val) {
+                print "constant label=$label: example-no=$exno " .
+                      " predicted=$val is non-monotonic!\n" .
+                      " @series";
+                $Errors++;
+            }
+
+            $prev_val = $val;
+        }
+    }
+    check_series(2.0, @P2);
+    check_series(5.0, @P5);
+
+    if ($Errors == 0) {
+        print "All OK! (predicted values monotonically approaching label)";
+        print "\tP2: ", join(' ', @P2);
+        print "\tP5: ", join(' ', @P5);
+    }
+}
