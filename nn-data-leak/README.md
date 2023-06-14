@@ -1,7 +1,11 @@
-# vw data-leak with the `--nn` option bug:
+# vw data-leak with the `--nn` option:
 
 This repo demonstrates a bug in vw, found on 2023-06-13,
 but verified to exist as far back as 2014 (~9 years ago)
+
+The bug is that using `--nn` causes an unexpected data-leak
+and the update goes the wrong way (against the desired gradient
+towards minimum loss).
 
 ## To reproduce, run `make`
 
@@ -9,13 +13,28 @@ but verified to exist as far back as 2014 (~9 years ago)
 
 ## Explanation
 
-The dataset `leaktest.vw`:
+#### The dataset `leaktest.vw`:
 
   - Has two separate name-spaces (`always2` and `always5`)
   - The name-spaces have no features in common (due to name-space separation)
   - The label of each example is set to a constant (one per each name space)
 
-The Makefile has 3 targets:
+Here's a copy of the dataset:
+```
+5.0 time0/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time0/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time1/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time1/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time2/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time2/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time3/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time3/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time4/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time4/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+5.0 time5/always5|always5  f1:1 f2:-1 f3:1 f4:-1
+2.0 time5/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+```
+#### The Makefile has 3 targets:
 
   - Vanilla (no `--nn` used) to show what's expected
   - Using `--nn` on each name space separately (two runs, one for each
