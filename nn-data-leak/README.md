@@ -41,7 +41,7 @@ Here's a copy of the dataset:
     isolated name-space)
   - Use `--nn` on both name spaces in one unified training data-set
 
-All the `vw` runs are with `--noconstant` and no caching `-k`.
+All the `vw` runs are one pass, with `--noconstant` and no caching.
 
 ## What is expected?
 
@@ -49,6 +49,7 @@ Since the two name spaces:
 
   - Represent two independent streams with no features in common
   - With a constant label
+
 and since the runs are with `--noconstant` and no caching,
 I expect the predicted value to converge monotonically towards
 the respective constant label in each of the two cases.
