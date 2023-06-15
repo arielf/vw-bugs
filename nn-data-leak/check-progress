@@ -6,8 +6,12 @@ next unless (/^\d/);
 my $actual = $F[4];
 my $predicted = $F[5];
 
-if ($actual == 5.0) { push(@P5, $predicted); }
-if ($actual == 2.0) { push(@P2, $predicted); }
+my $label = int($actual);
+
+my $array_name = "P$label";
+$ArrayNames{$array_name} = 1;
+
+push(@$array_name, $predicted);
 
 END {
     my $Errors = 0;
@@ -39,12 +43,14 @@ END {
             $prev_val = $val;
         }
     }
-    check_series(2.0, @P2);
-    check_series(5.0, @P5);
-
+    for my $arrname (keys %ArrayNames) {
+        my ($label) = ($arrname =~ /(\d+)/);
+        check_series($label, @$arrname);
+    }
     if ($Errors == 0) {
         print "All OK! (predicted values monotonically approaching label)";
-        print "\tP2: ", join(' ', @P2);
-        print "\tP5: ", join(' ', @P5);
+        for my $arrname (keys %ArrayNames) {
+            print "\t$arrname: ", join(' ', @$arrname);
+        }
     }
 }

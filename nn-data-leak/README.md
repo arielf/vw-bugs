@@ -13,28 +13,27 @@ towards minimum loss).
 
 ## Explanation
 
-#### The dataset `leaktest.vw`:
+### The dataset `leaktest.vw`:
 
-  - Has two separate name-spaces (`always2` and `always5`)
+  - Has two separate name-spaces (`always6` and `always7`)
   - The name-spaces have no features in common (due to name-space separation)
   - The label of each example is set to a constant (one per each name space)
 
 Here's a copy of the dataset:
 ```
-5.0 time0/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time0/always2|always2  f1:1 f2:-1 f3:1 f4:-1
-5.0 time1/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time1/always2|always2  f1:1 f2:-1 f3:1 f4:-1
-5.0 time2/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time2/always2|always2  f1:1 f2:-1 f3:1 f4:-1
-5.0 time3/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time3/always2|always2  f1:1 f2:-1 f3:1 f4:-1
-5.0 time4/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time4/always2|always2  f1:1 f2:-1 f3:1 f4:-1
-5.0 time5/always5|always5  f1:1 f2:-1 f3:1 f4:-1
-2.0 time5/always2|always2  f1:1 f2:-1 f3:1 f4:-1
+6.0 time0/always6|always6  f1:1
+7.0 time0/always7|always7  f1:1
+6.0 time1/always6|always6  f1:1
+7.0 time1/always7|always7  f1:1
+6.0 time2/always6|always6  f1:1
+7.0 time2/always7|always7  f1:1
+6.0 time3/always6|always6  f1:1
+7.0 time3/always7|always7  f1:1
+6.0 time4/always6|always6  f1:1
+7.0 time4/always7|always7  f1:1
 ```
-#### The Makefile has 3 targets:
+
+### The Makefile has 3 targets:
 
   - Vanilla (no `--nn` used) to show what's expected
   - Using `--nn` on each name space separately (two runs, one for each
@@ -61,7 +60,7 @@ Indeed, we get the expected result for the 1st two Makefile targets:
   - default
   - isolated-nn
 
-#### Here's how success looks like:
+### Here's how success looks like:
 
 Simple case, no `--nn` used:
 ```
@@ -69,11 +68,11 @@ $ make default
 #
 # Verifying normal no --nn (thus no leak) operation
 #
-vw --noconstant -k --learning_rate 2 --progress 1 -d leaktest.vw 2>&1 |
-     ./check-progress
+vw --noconstant -k --learning_rate 10 --progress 1 -d leaktest.vw 2>&1 | \
+    ./check-progress
 All OK! (predicted values monotonically approaching label)
-        P2: 0.0000 1.7293 1.9627 1.9949 1.9993 1.9999
-        P5: 0.0000 2.7532 3.9168 4.4706 4.7404 4.8726
+        P6: 0.0000 4.8666 5.7797 5.9571 5.9917
+        P7: 0.0000 5.3224 6.5818 6.8955 6.9739
 ```
 
 Isolated name-spaces (2 runs with `--nn`):
@@ -82,18 +81,16 @@ $ make isolated-nn
 #
 # Verifying isolated name-spaces with --nn
 #
-grep 'always2' leaktest.vw | \
-    vw --noconstant -k --learning_rate 2 --progress 1 --nn 2 -d /dev/stdin 2>&1 |
-    ./check-progress
+grep -- "always6" leaktest.vw | \
+    vw --noconstant -k --learning_rate 10 --progress 1 --nn 1 -d /dev/stdin 2>&1 | \
+        ./check-progress
 All OK! (predicted values monotonically approaching label)
-        P2: 0.0000 1.4939 2.0000 2.0000 2.0000 2.0000
-        P5:
-
-grep 'always5' leaktest.vw | \
-    vw --noconstant -k --learning_rate 2 --progress 1 --nn 2 -d /dev/stdin 2>&1 |./check-progress
+        P6: 0.0000 5.3137 6.0000 6.0000 6.0000
+grep -- "always7" leaktest.vw | \
+    vw --noconstant -k --learning_rate 10 --progress 1 --nn 1 -d /dev/stdin 2>&1 | \
+        ./check-progress
 All OK! (predicted values monotonically approaching label)
-        P2:
-        P5: 0.0000 2.0418 4.3590 4.8295 4.9513 4.9855
+        P7: 0.0000 5.7712 7.0000 7.0000 7.0000
 ```
 
 ## What fails?
@@ -109,8 +106,8 @@ Each of the two streams breaks the other through some suspected shared
 feature weight.
 
 This causes the SGD update go against the correct gradient.
-The `always2` stream pushes the `always5` down, while
-the `always5` pushes the `always2` stream up.
+The `always6` stream pushes the `always7` down, while
+the `always7` pushes the `always6` stream up.
 
 Here's the failure case in detail:
 ```
@@ -118,21 +115,46 @@ $ make nn-leak
 #
 # Triggering bug (data leak between name-spaces with --nn)
 #
-vw --noconstant -k --learning_rate 2 --progress 1 -d leaktest.vw --nn 2 2>&1 |
-     ./check-progress
-constant label=2: example-no=2  predicted=2.3587 exceeds max (2):
- 1.6483 2.3587 1.4182 3.2389 0.3825 2.3662
-constant label=2: example-no=3  predicted=1.4182 is non-monotonic!
- 1.6483 2.3587 1.4182 3.2389 0.3825 2.3662
-constant label=2: example-no=4  predicted=3.2389 exceeds max (2):
- 1.6483 2.3587 1.4182 3.2389 0.3825 2.3662
-constant label=2: example-no=5  predicted=0.3825 is non-monotonic!
- 1.6483 2.3587 1.4182 3.2389 0.3825 2.3662
-constant label=2: example-no=6  predicted=2.3662 exceeds max (2):
- 1.6483 2.3587 1.4182 3.2389 0.3825 2.3662
-constant label=5: example-no=5  predicted=4.3549 is non-monotonic!
- 0.0000 2.1334 4.2154 4.7311 4.3549 4.3113
-constant label=5: example-no=6  predicted=4.3113 is non-monotonic!
- 0.0000 2.1334 4.2154 4.7311 4.3549 4.3113
-
+vw --noconstant -k --learning_rate 10 --progress 1 --nn 1 -d leaktest.vw 2>&1 | \
+    ./check-progress
+constant label=7: example-no=4  predicted=6.1166 is non-monotonic!
+ 4.8666 6.1036 6.1701 6.1166 6.0900
+constant label=7: example-no=5  predicted=6.0900 is non-monotonic!
+ 4.8666 6.1036 6.1701 6.1166 6.0900
+constant label=6: example-no=2  predicted=7.0000 exceeds max (6):
+ 0.0000 7.0000 7.0000 7.0000 7.0000
+constant label=6: example-no=3  predicted=7.0000 exceeds max (6):
+ 0.0000 7.0000 7.0000 7.0000 7.0000
+constant label=6: example-no=4  predicted=7.0000 exceeds max (6):
+ 0.0000 7.0000 7.0000 7.0000 7.0000
+constant label=6: example-no=5  predicted=7.0000 exceeds max (6):
+ 0.0000 7.0000 7.0000 7.0000 7.0000
 ```
+
+## github issue
+
+For reference, this is the issue I opened in the official vw repo:
+
+[VowpalWabbit/vowpal_wabbit#4614](https://github.com/VowpalWabbit/vowpal_wabbit#4614)
+
+
+## Possible cause + desired outcome
+
+My guess is that the leak happens through the full-connectivity of the
+features via the hidden layer.
+
+The full connectivity is a done-deal (imposed at the start of run
+by the fact we want a fully-connected NN.)
+
+So it seems to me that the SGD update should somehow skip any updates to
+weights that have nothing to do with the ones in the example.
+
+IOW: the skips should be in run-time (rather than initialization time)
+and should update only those target feature-nodes that are present
+in the current example (and/or namespace).
+
+Ideally, this skip vs non-skip (current default) should be controlled by
+a `vw` CLI switch. Possible proposed names:
+
+     --respect_namespaces
+     --restricted_update
